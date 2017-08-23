@@ -331,6 +331,80 @@ nest::ConnBuilder::check_synapse_params_( std::string syn_name,
     }
     return;
   }
+  if ( syn_name == "stdp_noradrenaline_synapse" )
+  {
+    if ( syn_spec->known( "vt" ) )
+      throw NotImplemented(
+        "Connect doesn't support the direct specification of the "
+        "volume transmitter of stdp_noradrenaline_synapse in syn_spec."
+        "Use SetDefaults() or CopyModel()." );
+    // setting of parameter c and n not thread save
+    if ( kernel().vp_manager.get_num_threads() > 1 )
+    {
+      if ( syn_spec->known( names::c ) )
+        throw NotImplemented(
+          "For multi-threading Connect doesn't support the setting "
+          "of parameter c in stdp_noradrenaline_synapse. "
+          "Use SetDefaults() or CopyModel()." );
+      if ( syn_spec->known( names::n ) )
+        throw NotImplemented(
+          "For multi-threading Connect doesn't support the setting "
+          "of parameter n in stdp_noradrenaline_synapse. "
+          "Use SetDefaults() or CopyModel()." );
+    }
+    std::string param_arr[] = {
+      "A_minus", "A_plus", "Wmax", "Wmin", "b", "tau_c", "tau_n", "tau_plus"
+    };
+    std::vector< std::string > param_vec( param_arr, param_arr + 8 );
+    for ( std::vector< std::string >::iterator it = param_vec.begin();
+          it != param_vec.end();
+          it++ )
+    {
+      if ( syn_spec->known( *it ) )
+        throw NotImplemented(
+          "Connect doesn't support the setting of parameter " + *it
+          + " in stdp_noradrenaline_synapse. Use SetDefaults() or CopyModel()." );
+    }
+    return;
+  }
+
+  if ( syn_name == "stdp_serotonin_synapse" )
+  {
+    if ( syn_spec->known( "vt" ) )
+      throw NotImplemented(
+        "Connect doesn't support the direct specification of the "
+        "volume transmitter of stdp_serotonin_synapse in syn_spec."
+        "Use SetDefaults() or CopyModel()." );
+    // setting of parameter c and n not thread save
+    if ( kernel().vp_manager.get_num_threads() > 1 )
+    {
+      if ( syn_spec->known( names::c ) )
+        throw NotImplemented(
+          "For multi-threading Connect doesn't support the setting "
+          "of parameter c in stdp_serotonin_synapse. "
+          "Use SetDefaults() or CopyModel()." );
+      if ( syn_spec->known( names::n ) )
+        throw NotImplemented(
+          "For multi-threading Connect doesn't support the setting "
+          "of parameter n in stdp_serotonin_synapse. "
+          "Use SetDefaults() or CopyModel()." );
+    }
+    std::string param_arr[] = {
+      "A_minus", "A_plus", "Wmax", "Wmin", "b", "tau_c", "tau_n", "tau_plus"
+    };
+    std::vector< std::string > param_vec( param_arr, param_arr + 8 );
+    for ( std::vector< std::string >::iterator it = param_vec.begin();
+          it != param_vec.end();
+          it++ )
+    {
+      if ( syn_spec->known( *it ) )
+        throw NotImplemented(
+          "Connect doesn't support the setting of parameter " + *it
+          + " in stdp_serotonin_synapse. Use SetDefaults() or CopyModel()." );
+    }
+    return;
+  }
+
 }
 /**
  * Updates the number of connected synaptic elements in the

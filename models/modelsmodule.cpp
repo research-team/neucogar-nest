@@ -79,6 +79,8 @@
 #include "gif_psc_exp_multisynapse.h"
 #include "gif_cond_exp.h"
 #include "gif_cond_exp_multisynapse.h"
+#include "stdp_nora_connection.h"
+#include "stdp_h5_connection.h"
 
 // Stimulation devices
 #include "ac_generator.h"
@@ -599,6 +601,34 @@ ModelsModule::init( SLIInterpreter* )
     .model_manager
     .register_connection_model< STDPDopaConnection< TargetIdentifierIndex > >(
       "stdp_dopamine_synapse_hpc" );
+
+  /* BeginDocumentation
+     Name: stdp_nora_synapse_hpc - Variant of stdp_nora_synapse with low
+     memory consumption.
+     SeeAlso: synapsedict, stdp_nora_synapse, static_synapse_hpc
+  */
+  kernel()
+    .model_manager
+    .register_connection_model< STDPNoraConnection< TargetIdentifierPtrRport > >(
+      "stdp_noradrenaline_synapse" );
+  kernel()
+    .model_manager
+    .register_connection_model< STDPNoraConnection< TargetIdentifierIndex > >(
+      "stdp_noradrenaline_synapse_hpc" );
+
+    /* BeginDocumentation
+     Name: stdp_serotonin_synapse_hpc - Variant of stdp_nora_synapse with low
+     memory consumption.
+     SeeAlso: synapsedict, stdp_serotonin_synapse, static_synapse_hpc
+  */
+  kernel()
+    .model_manager
+    .register_connection_model< STDPH5Connection< TargetIdentifierPtrRport > >(
+      "stdp_serotonin_synapse" );
+  kernel()
+    .model_manager
+    .register_connection_model< STDPH5Connection< TargetIdentifierIndex > >(
+      "stdp_serotonin_synapse_hpc" );
 
   /* BeginDocumentation
      Name: vogels_sprekeler_synapse_hpc - Variant of vogels_sprekeler_synapse

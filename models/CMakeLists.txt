@@ -98,6 +98,8 @@ set( models_sources
     vogels_sprekeler_connection.h
     weight_recorder.h weight_recorder.cpp
     spike_dilutor.h spike_dilutor.cpp
+    stdp_nora_connection.h stdp_nora_connection.cpp
+    stdp_h5_connection.h stdp_h5_connection.cpp
     )
 
 add_library( models ${models_sources} )
