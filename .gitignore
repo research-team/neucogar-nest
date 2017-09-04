@@ -10,9 +10,14 @@ pynest/pynestkernel.cpp
 *.so
 *.log
 *.pyc
+*.cxx
+*.xml
+*.iml
+
 Makefile
 build/
-
+doc/
+extras/
 /juqueen/
 /extras/nest-config
 /extras/create_release.sh
