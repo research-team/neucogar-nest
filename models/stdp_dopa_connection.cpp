@@ -61,14 +61,15 @@ STDPDopaCommonProperties::get_status( DictionaryDatum& d ) const
   else
     def< long >( d, "vt", -1 );
 
-  def< double >( d, "A_plus", A_plus_ );
-  def< double >( d, "A_minus", A_minus_ );
-  def< double >( d, "tau_plus", tau_plus_ );
-  def< double >( d, "tau_c", tau_c_ );
-  def< double >( d, "tau_n", tau_n_ );
-  def< double >( d, "b", b_ );
-  def< double >( d, "Wmin", Wmin_ );
-  def< double >( d, "Wmax", Wmax_ );
+    def< double >( d, "A_plus", A_plus_ );
+    def< double >( d, "A_minus", A_minus_ );
+    def< double >( d, "tau_plus", tau_plus_ );
+    def< double >( d, "tau_c", tau_c_ );
+    def< double >( d, "tau_n", tau_n_ );
+    def< double >( d, "b", b_ );
+    def< double >( d, "Wmin", Wmin_ );
+    def< double >( d, "Wmax", Wmax_ );
+    def<long>(d, names::size_of, sizeof(*this));
 }
 
 void

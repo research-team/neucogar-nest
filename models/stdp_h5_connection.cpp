@@ -48,6 +48,7 @@ STDPH5CommonProperties::get_status( DictionaryDatum& d ) const
   def< double >( d, "b", b_ );
   def< double >( d, "Wmin", Wmin_ );
   def< double >( d, "Wmax", Wmax_ );
+  def<long>(d, names::size_of, sizeof(*this));
 }
 
 void
