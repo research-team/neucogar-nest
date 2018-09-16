@@ -119,6 +119,16 @@ public:
    */
   index size() const;
 
+  /**
+   * Returns the maximal number of nodes per virtual process.
+   */
+  index get_max_num_local_nodes() const;
+
+  /**
+   * Returns the number of devices per virtual process.
+   */
+  index get_num_local_devices() const;
+
   Subnet* get_root() const; ///< return root subnet.
   Subnet* get_cwn() const;  ///< current working node.
 
@@ -172,16 +182,6 @@ public:
   Node* thread_lid_to_node( thread t, targetindex thread_local_id ) const;
 
   /**
-   * Increment total number of global spike detectors by 1
-   */
-  void increment_n_gsd();
-
-  /**
-   * Get total number of global spike detectors
-   */
-  index get_n_gsd();
-
-  /**
    * Get list of nodes on given thread.
    */
   const std::vector< Node* >& get_nodes_on_thread( thread ) const;
@@ -195,12 +195,27 @@ public:
    * Prepare nodes for simulation and register nodes in node_list.
    * Calls prepare_node_() for each pertaining Node.
    * @see prepare_node_()
-   * @returns number of nodes that will be simulated.
    */
-  size_t prepare_nodes();
+  void prepare_nodes();
 
   /**
-   * Invoke finalize() on nodes registered for finalization.
+   * Get the number of nodes created by last prepare_nodes() call
+   * @see prepare_nodes()
+   * @return number of active nodes
+   */
+  size_t
+  get_num_active_nodes()
+  {
+    return num_active_nodes_;
+  };
+
+  /**
+   * Invoke post_run_cleanup() on all nodes.
+   */
+  void post_run_cleanup();
+
+  /**
+   * Invoke finalize() on all nodes.
    */
   void finalize_nodes();
 
@@ -228,6 +243,8 @@ public:
    * Number of process-local nodes.
    */
   size_t local_nodes_size() const;
+  bool have_nodes_changed() const;
+  void set_have_nodes_changed( const bool changed );
 
 private:
   /**
@@ -270,9 +287,6 @@ private:
 
   Model* siblingcontainer_model_; //!< The model for the SiblingContainer class
 
-  index n_gsd_; //!< Total number of global spike detectors, used for
-                //!< distributing them over recording processes
-
   /**
    * Data structure holding node pointers per thread.
    *
@@ -292,6 +306,12 @@ private:
                      //!< waveform relaxation
   //! Network size when nodes_vec_ was last updated
   index nodes_vec_network_size_;
+  size_t num_active_nodes_; //!< number of nodes created by prepare_nodes
+
+  index num_local_devices_; //!< stores number of local devices
+
+  bool have_nodes_changed_; //!< true if new nodes have been created
+                            //!< since startup or last call to simulate
 };
 
 inline index
@@ -322,18 +342,6 @@ inline Node*
 NodeManager::thread_lid_to_node( thread t, targetindex thread_local_id ) const
 {
   return nodes_vec_[ t ][ thread_local_id ];
-}
-
-inline void
-NodeManager::increment_n_gsd()
-{
-  ++n_gsd_;
-}
-
-inline index
-NodeManager::get_n_gsd()
-{
-  return n_gsd_;
 }
 
 inline const std::vector< Node* >&
@@ -370,6 +378,18 @@ inline size_t
 NodeManager::local_nodes_size() const
 {
   return local_nodes_.size();
+}
+
+inline bool
+NodeManager::have_nodes_changed() const
+{
+  return have_nodes_changed_;
+}
+
+inline void
+NodeManager::set_have_nodes_changed( const bool changed )
+{
+  have_nodes_changed_ = changed;
 }
 
 } // namespace

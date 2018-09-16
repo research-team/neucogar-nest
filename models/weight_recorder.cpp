@@ -43,7 +43,7 @@
 
 // record time, gid, weight and receiver gid
 nest::weight_recorder::weight_recorder()
-  : Node()
+  : DeviceNode()
   , device_( *this,
       RecordingDevice::WEIGHT_RECORDER,
       "csv",
@@ -52,18 +52,14 @@ nest::weight_recorder::weight_recorder()
       true,
       true )
   , user_set_precise_times_( false )
-  , has_proxies_( false )
-  , local_receiver_( true )
   , P_()
 {
 }
 
 nest::weight_recorder::weight_recorder( const weight_recorder& n )
-  : Node( n )
+  : DeviceNode( n )
   , device_( *this, n.device_ )
   , user_set_precise_times_( n.user_set_precise_times_ )
-  , has_proxies_( false )
-  , local_receiver_( true )
   , P_( n.P_ )
 {
 }
@@ -173,14 +169,16 @@ nest::weight_recorder::get_status( DictionaryDatum& d ) const
 
   // if we are the device on thread 0, also get the data from the
   // siblings on other threads
-  if ( local_receiver_ && get_thread() == 0 )
+  if ( get_thread() == 0 )
   {
     const SiblingContainer* siblings =
       kernel().node_manager.get_thread_siblings( get_gid() );
     std::vector< Node* >::const_iterator sibling;
     for ( sibling = siblings->begin() + 1; sibling != siblings->end();
           ++sibling )
+    {
       ( *sibling )->get_status( d );
+    }
   }
 
   P_.get( d );
@@ -190,7 +188,9 @@ void
 nest::weight_recorder::set_status( const DictionaryDatum& d )
 {
   if ( d->known( names::precise_times ) )
+  {
     user_set_precise_times_ = true;
+  }
 
   device_.set_status( d );
 
@@ -214,7 +214,9 @@ nest::weight_recorder::handle( WeightRecorderEvent& e )
            and not std::binary_search( P_.targets_.begin(),
                  P_.targets_.end(),
                  e.get_receiver_gid() ) ) )
+    {
       return;
+    }
 
     WeightRecorderEvent* event = e.clone();
     B_.events_.push_back( *event );

@@ -135,7 +135,6 @@ public:
   check_connection( Node& s,
     Node& t,
     rport receptor_type,
-    double,
     const CommonPropertiesType& )
   {
     ConnTestDummyNode dummy_target;
@@ -143,17 +142,31 @@ public:
   }
 
   /**
-   * Send an event to the receiver of this connection.
-   * \param e The event to send
-   * \param p The port under which this connection is stored in the Connector.
-   * \param t_lastspike Time point of last spike emitted
+   * Checks to see if weight is given in syn_spec.
    */
   void
-  send( Event& e, thread t, double, const CommonPropertiesHomW& cp )
+  check_synapse_params( const DictionaryDatum& syn_spec ) const
+  {
+    if ( syn_spec->known( names::weight ) )
+    {
+      throw BadProperty(
+        "Weight cannot be specified since it needs to be equal "
+        "for all connections when static_synapse_hom_w is used." );
+    }
+  }
+
+  /**
+   * Send an event to the receiver of this connection.
+   * \param e The event to send
+   * \param tid Thread ID of the target
+   * \param cp Common properties-object of the synapse
+   */
+  void
+  send( Event& e, const thread tid, const CommonPropertiesHomW& cp )
   {
     e.set_weight( cp.get_weight() );
     e.set_delay( get_delay_steps() );
-    e.set_receiver( *get_target( t ) );
+    e.set_receiver( *get_target( tid ) );
     e.set_rport( get_rport() );
     e();
   }

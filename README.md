@@ -2,13 +2,14 @@
 
 [![Build Status](https://travis-ci.org/nest/nest-simulator.svg?branch=master)](https://travis-ci.org/nest/nest-simulator)
 [![License](http://img.shields.io/:license-GPLv2+-green.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.259534.svg)](http://dx.doi.org/10.5281/zenodo.259534) 
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.1400175.svg)](https://doi.org/10.5281/zenodo.1400175)
+[![Latest Version](https://img.shields.io/badge/latest%20version-2.14.0-brightgreen.svg)](https://github.com/nest/nest-simulator/releases/tag/v2.14.0)
 
 NEST is a simulator for spiking neural network models that focuses on the
 dynamics, size and structure of neural systems rather than on the exact
 morphology of individual neurons. The development of NEST is coordinated by the
-NEST Initiative. General information on the NEST Initiative, can be found at
-it's homepage at http://www.nest-initiative.org.
+NEST Initiative. General information on the NEST Initiative can be found at
+its homepage at http://www.nest-initiative.org.
 
 NEST is ideal for networks of spiking neurons of any size, for example:
 
@@ -18,12 +19,12 @@ NEST is ideal for networks of spiking neurons of any size, for example:
   balanced random networks,
 - Models of learning and plasticity.
 
-For copyright information please refer to the LICENSE file and to the
+For copyright information please refer to the `LICENSE` file and to the
 information header in the source files.
 
 ## How do I use NEST?
 
-You can use NEST either via Python (PyNEST) or as a stand alone application
+You can use NEST either via Python (PyNEST) or as a stand-alone application
 (nest). PyNEST provides a set of commands to the Python interpreter which give
 you access to NEST's simulation kernel. With these commands, you describe and
 run your network simulation. You can also complement PyNEST with PyNN, a
@@ -110,6 +111,10 @@ you received in the NEST sources.
 ## Citing NEST
 
 Please cite NEST if you use it in your work.
+
+If you use NEST 2.14.0, please cite it as **Peyser, Alexander et al. (2017).
+NEST 2.14.0. Zenodo. 10.5281/zenodo.882971**. The full citation is available
+in different formats on [Zenodo](http://dx.doi.org/10.5281/zenodo.882971).
 
 If you use NEST 2.12.0, please cite it as **Kunkel, Susanne et al. (2017).
 NEST 2.12.0. Zenodo. 10.5281/zenodo.259534**. The full citation is available

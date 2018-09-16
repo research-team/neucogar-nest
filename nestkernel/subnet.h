@@ -82,6 +82,9 @@ public:
   void set_status( const DictionaryDatum& );
   void get_status( DictionaryDatum& ) const;
 
+  void set_local_device_id( const index ldid );
+  index get_local_device_id() const;
+
   bool has_proxies() const;
 
   size_t global_size() const; //!< Returns total number of children.
@@ -232,6 +235,8 @@ private:
   bool homogeneous_; //!< flag which indicates if the subnet contains different
                      //!< kinds of models.
   index last_mid_;   //!< model index of last child
+
+  index local_device_id_;
 };
 
 /**
@@ -242,9 +247,13 @@ Subnet::add_node( Node* n )
 {
   const index lid = gids_.size();
   const index mid = n->get_model_id();
-  if ( ( homogeneous_ ) && ( lid > 0 ) )
+  if ( ( homogeneous_ ) and ( lid > 0 ) )
+  {
     if ( mid != last_mid_ )
+    {
       homogeneous_ = false;
+    }
+  }
   n->set_lid_( lid );
   n->set_subnet_index_( nodes_.size() );
   nodes_.push_back( n );
@@ -261,9 +270,13 @@ inline index
 Subnet::add_remote_node( index gid, index mid )
 {
   const index lid = gids_.size();
-  if ( ( homogeneous_ ) && ( lid > 0 ) )
+  if ( ( homogeneous_ ) and ( lid > 0 ) )
+  {
     if ( mid != last_mid_ )
+    {
       homogeneous_ = false;
+    }
+  }
   last_mid_ = mid;
   gids_.push_back( gid );
   return lid;
@@ -330,8 +343,9 @@ Subnet::at_lid( index lid ) const
   assert( local_size() == global_size() );
 
   if ( lid >= nodes_.size() )
+  {
     throw UnknownNode();
-
+  }
   return nodes_[ lid ];
 }
 
@@ -369,6 +383,18 @@ inline bool
 Subnet::is_homogeneous() const
 {
   return homogeneous_;
+}
+
+inline void
+Subnet::set_local_device_id( const index ldid )
+{
+  local_device_id_ = ldid;
+}
+
+inline index
+Subnet::get_local_device_id() const
+{
+  return local_device_id_;
 }
 
 } // namespace

@@ -73,12 +73,14 @@ nest::mip_generator::Parameters_::set( const DictionaryDatum& d )
 {
   updateValue< double >( d, names::rate, rate_ );
   updateValue< double >( d, names::p_copy, p_copy_ );
-
   if ( rate_ < 0 )
+  {
     throw BadProperty( "Rate must be non-negative." );
-
+  }
   if ( p_copy_ < 0 || p_copy_ > 1 )
+  {
     throw BadProperty( "Copy probability must be in [0, 1]." );
+  }
 
   bool reset_rng =
     updateValue< librandom::RngPtr >( d, names::mother_rng, rng_ );
@@ -86,9 +88,10 @@ nest::mip_generator::Parameters_::set( const DictionaryDatum& d )
   // order important to avoid short-circuitung
   reset_rng =
     updateValue< long >( d, names::mother_seed, mother_seed_ ) || reset_rng;
-
   if ( reset_rng )
+  {
     rng_->seed( mother_seed_ );
+  }
 }
 
 /* ----------------------------------------------------------------
@@ -96,14 +99,14 @@ nest::mip_generator::Parameters_::set( const DictionaryDatum& d )
  * ---------------------------------------------------------------- */
 
 nest::mip_generator::mip_generator()
-  : Node()
+  : DeviceNode()
   , device_()
   , P_()
 {
 }
 
 nest::mip_generator::mip_generator( const mip_generator& n )
-  : Node( n )
+  : DeviceNode( n )
   , device_( n.device_ )
   , P_( n.P_ ) // also causes deep copy of random nnumber generator
 {
@@ -152,8 +155,10 @@ nest::mip_generator::update( Time const& T, const long from, const long to )
 
   for ( long lag = from; lag < to; ++lag )
   {
-    if ( !device_.is_active( T ) || P_.rate_ <= 0 )
+    if ( not device_.is_active( T ) || P_.rate_ <= 0 )
+    {
       return; // no spikes to be generated
+    }
 
     // generate spikes of mother process for each time slice
     long n_mother_spikes = V_.poisson_dev_.ldev( P_.rng_ );
@@ -189,7 +194,9 @@ nest::mip_generator::event_hook( DSSpikeEvent& e )
   for ( unsigned long n = 0; n < n_mother_spikes; n++ )
   {
     if ( rng->drand() < P_.p_copy_ )
+    {
       n_spikes++;
+    }
   }
 
   if ( n_spikes > 0 )

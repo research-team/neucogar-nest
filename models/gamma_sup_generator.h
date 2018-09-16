@@ -32,9 +32,9 @@
 
 // Includes from nestkernel:
 #include "connection.h"
+#include "device_node.h"
 #include "event.h"
 #include "nest_types.h"
-#include "node.h"
 #include "stimulating_device.h"
 
 /*BeginDocumentation
@@ -80,7 +80,7 @@ namespace nest
  *
  * @ingroup Devices
  */
-class gamma_sup_generator : public Node
+class gamma_sup_generator : public DeviceNode
 {
 
 public:
@@ -230,9 +230,10 @@ gamma_sup_generator::send_test_event( Node& target,
     SpikeEvent e;
     e.set_sender( *this );
     const port p = target.handles_test_event( e, receptor_type );
-
     if ( p != invalid_port_ )
-      ++P_.num_targets_; // count number of targets
+    {
+      ++P_.num_targets_;
+    } // count number of targets
     return p;
   }
 }

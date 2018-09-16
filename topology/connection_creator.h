@@ -198,15 +198,20 @@ ConnectionCreator::connect_( index s,
   double d,
   index syn )
 {
+  DictionaryDatum dummy_params = new Dictionary; // empty parameter dictionary
+                                                 // required by connect() calls
+
   // check whether the target is on this process
   if ( kernel().node_manager.is_local_gid( target->get_gid() ) )
   {
     // check whether the target is on our thread
     thread tid = kernel().vp_manager.get_thread_id();
     if ( tid == target_thread )
+    {
       // TODO implement in terms of nest-api
       kernel().connection_manager.connect(
-        s, target, target_thread, syn, d, w );
+        s, target, target_thread, syn, dummy_params, d, w );
+    }
   }
 }
 

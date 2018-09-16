@@ -141,15 +141,16 @@ public:
   void set_status( const DictionaryDatum& d, ConnectorModel& cm );
 
   /**
+   * Issue warning if delay is given in syn_spec.
+   */
+  void check_synapse_params( const DictionaryDatum& d ) const;
+
+  /**
    * Send an event to the receiver of this connection.
    * \param e The event to send
-   * \param t_lastspike Point in time of last spike sent.
    * \param cp common properties of all synapses (empty).
    */
-  void send( Event& e,
-    thread t,
-    double t_lastspike,
-    const CommonSynapseProperties& cp );
+  void send( Event& e, thread t, const CommonSynapseProperties& cp );
 
   class ConnTestDummyNode : public ConnTestDummyNodeBase
   {
@@ -203,7 +204,6 @@ public:
   check_connection( Node& s,
     Node& t,
     rport receptor_type,
-    double,
     const CommonPropertiesType& )
   {
     ConnTestDummyNode dummy_target;
@@ -220,13 +220,11 @@ private:
  * Send an event to the receiver of this connection.
  * \param e The event to send
  * \param p The port under which this connection is stored in the Connector.
- * \param t_lastspike Time point of last spike emitted
  */
 template < typename targetidentifierT >
 inline void
 ContDelayConnection< targetidentifierT >::send( Event& e,
   thread t,
-  double,
   const CommonSynapseProperties& )
 {
   e.set_receiver( *get_target( t ) );

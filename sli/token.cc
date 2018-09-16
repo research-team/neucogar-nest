@@ -155,24 +155,34 @@ Token::info( std::ostream& out ) const
     p->info( out );
   }
   else
+  {
     out << "<NULL token>\n";
+  }
 }
 
 void
 Token::pprint( std::ostream& out ) const
 {
-  if ( !p )
+  if ( not p )
+  {
     out << "<Null token>";
+  }
   else
+  {
     p->pprint( out );
+  }
 }
 
 std::ostream& operator<<( std::ostream& o, const Token& c )
 {
-  if ( !c )
+  if ( not c )
+  {
     o << "<Null token>";
+  }
   else
+  {
     c->print( o );
+  }
   return o;
 }
 
@@ -185,7 +195,7 @@ Token::matches_as_string( const Token& rhs ) const
     const std::string& right = getValue< std::string >( rhs );
     return left == right;
   }
-  catch ( TypeMismatch )
+  catch ( TypeMismatch& )
   {
     return false;
   }

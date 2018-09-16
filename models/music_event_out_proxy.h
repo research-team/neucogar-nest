@@ -35,10 +35,10 @@
 #include <music.hh>
 
 // Includes from nestkernel:
+#include "device_node.h"
 #include "event.h"
 #include "exceptions.h"
 #include "nest_types.h"
-#include "node.h"
 
 /* BeginDocumentation
 
@@ -80,7 +80,7 @@ SeeAlso: music_event_in_proxy, music_cont_in_proxy, music_message_in_proxy
 
 namespace nest
 {
-class music_event_out_proxy : public Node
+class music_event_out_proxy : public DeviceNode
 {
 
 public:
@@ -184,10 +184,14 @@ music_event_out_proxy::handles_test_event( SpikeEvent&, rport receptor_type )
   // number to the local index of this connection the local index
   // equals the number of connection
 
-  if ( !S_.published_ )
+  if ( not S_.published_ )
+  {
     V_.index_map_.push_back( static_cast< int >( receptor_type ) );
+  }
   else
+  {
     throw MUSICPortAlreadyPublished( get_name(), P_.port_name_ );
+  }
 
   return receptor_type;
 }

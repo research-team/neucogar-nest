@@ -31,9 +31,9 @@
 
 // Includes from nestkernel:
 #include "connection.h"
+#include "device_node.h"
 #include "event.h"
 #include "nest_types.h"
-#include "node.h"
 #include "stimulating_device.h"
 
 /*BeginDocumentation
@@ -76,7 +76,7 @@ namespace nest
  *
  * @ingroup Devices
  */
-class poisson_generator_ps : public Node
+class poisson_generator_ps : public DeviceNode
 {
 
 public:
@@ -214,7 +214,9 @@ poisson_generator_ps::send_test_event( Node& target,
     e.set_sender( *this );
     const port p = target.handles_test_event( e, receptor_type );
     if ( p != invalid_port_ and not is_model_prototype() )
+    {
       ++P_.num_targets_; // count number of targets
+    }
     return p;
   }
 }

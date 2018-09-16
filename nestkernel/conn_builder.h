@@ -91,7 +91,7 @@ public:
   index
   get_synapse_model() const
   {
-    return synapse_model_;
+    return synapse_model_id_;
   }
 
   bool
@@ -184,6 +184,7 @@ protected:
   bool autapses_;
   bool multapses_;
   bool make_symmetric_;
+  bool creates_symmetric_connections_;
 
   //! buffer for exceptions raised in threads
   std::vector< lockPTR< WrappedThreadException > > exceptions_raised_;
@@ -205,7 +206,7 @@ protected:
 private:
   typedef std::map< Name, ConnParameter* > ConnParameterMap;
 
-  index synapse_model_;
+  index synapse_model_id_;
 
   //! indicate that weight and delay should not be set per synapse
   bool default_weight_and_delay_;
@@ -234,13 +235,6 @@ private:
    * routines to ensuring thread-safety.
    */
   void register_parameters_requiring_skipping_( ConnParameter& param );
-
-  // check for synapse specific errors or warnings
-  // This is a temporary function which should be removed once all parameter
-  // types work with Connect.
-  // The remaining error and warnings should then be handled within the synapse
-  // model.
-  void check_synapse_params_( std::string, const DictionaryDatum& );
 
 protected:
   //! pointers to connection parameters specified as arrays
@@ -288,7 +282,7 @@ public:
   bool
   is_symmetric() const
   {
-    return *sources_ == *targets_ && all_parameters_scalar_();
+    return *sources_ == *targets_ and all_parameters_scalar_();
   }
 
   bool
@@ -370,6 +364,27 @@ private:
   double p_; //!< connection probability
 };
 
+class SymmetricBernoulliBuilder : public ConnBuilder
+{
+public:
+  SymmetricBernoulliBuilder( const GIDCollection&,
+    const GIDCollection&,
+    const DictionaryDatum&,
+    const DictionaryDatum& );
+
+  bool
+  supports_symmetric() const
+  {
+    return true;
+  }
+
+protected:
+  void connect_();
+
+private:
+  double p_; //!< connection probability
+};
+
 class SPBuilder : public ConnBuilder
 {
 public:
@@ -419,7 +434,9 @@ ConnBuilder::skip_conn_parameter_( thread target_thread, size_t n_skip )
           parameters_requiring_skipping_.begin();
         it != parameters_requiring_skipping_.end();
         ++it )
+  {
     ( *it )->skip( target_thread, n_skip );
+  }
 }
 
 } // namespace nest

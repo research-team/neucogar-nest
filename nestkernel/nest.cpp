@@ -28,8 +28,8 @@
 // Includes from nestkernel:
 #include "exceptions.h"
 #include "kernel_manager.h"
-#include "nodelist.h"
 #include "mpi_manager_impl.h"
+#include "nodelist.h"
 #include "subnet.h"
 
 // Includes from sli:
@@ -96,13 +96,17 @@ get_vp_rng_of_gid( index target )
 {
   Node* target_node = kernel().node_manager.get_node( target );
 
-  if ( !kernel().node_manager.is_local_node( target_node ) )
+  if ( not kernel().node_manager.is_local_node( target_node ) )
+  {
     throw LocalNodeExpected( target );
+  }
 
   // Only nodes with proxies have a well-defined VP and thus thread.
   // Asking for the VP of, e.g., a subnet or spike_detector is meaningless.
-  if ( !target_node->has_proxies() )
+  if ( not target_node->has_proxies() )
+  {
     throw NodeWithProxiesExpected( target );
+  }
 
   return kernel().rng_manager.get_rng( target_node->get_thread() );
 }
@@ -160,16 +164,17 @@ set_connection_status( const ConnectionDatum& conn,
   const DictionaryDatum& dict )
 {
   DictionaryDatum conn_dict = conn.get_dict();
-  long synapse_id = getValue< long >( conn_dict, nest::names::synapse_modelid );
-  long port = getValue< long >( conn_dict, nest::names::port );
-  long gid = getValue< long >( conn_dict, nest::names::source );
-  thread tid = getValue< long >( conn_dict, nest::names::target_thread );
-  kernel().node_manager.get_node( gid ); // Just to check if the node exists
+  const index source_gid = getValue< long >( conn_dict, nest::names::source );
+  const index target_gid = getValue< long >( conn_dict, nest::names::target );
+  const thread tid = getValue< long >( conn_dict, nest::names::target_thread );
+  const synindex syn_id =
+    getValue< long >( conn_dict, nest::names::synapse_modelid );
+  const port p = getValue< long >( conn_dict, nest::names::port );
 
   dict->clear_access_flags();
 
   kernel().connection_manager.set_synapse_status(
-    gid, synapse_id, port, tid, dict );
+    source_gid, target_gid, tid, syn_id, p, dict );
 
   ALL_ENTRIES_ACCESSED2( *dict,
     "SetStatus",
@@ -181,13 +186,11 @@ set_connection_status( const ConnectionDatum& conn,
 DictionaryDatum
 get_connection_status( const ConnectionDatum& conn )
 {
-  long gid = conn.get_source_gid();
-  kernel().node_manager.get_node( gid ); // Just to check if the node exists
-
-  return kernel().connection_manager.get_synapse_status( gid,
+  return kernel().connection_manager.get_synapse_status( conn.get_source_gid(),
+    conn.get_target_gid(),
+    conn.get_target_thread(),
     conn.get_synapse_model_id(),
-    conn.get_port(),
-    conn.get_target_thread() );
+    conn.get_port() );
 }
 
 index
@@ -201,7 +204,9 @@ create( const Name& model_name, const index n_nodes )
   const Token model =
     kernel().model_manager.get_modeldict()->lookup( model_name );
   if ( model.empty() )
+  {
     throw UnknownModelName( model_name );
+  }
 
   // create
   const index model_id = static_cast< index >( model );
@@ -256,6 +261,41 @@ simulate( const double& time )
 }
 
 void
+run( const double& time )
+{
+  const Time t_sim = Time::ms( time );
+
+  if ( time < 0 )
+  {
+    throw BadParameter( "The simulation time cannot be negative." );
+  }
+  if ( not t_sim.is_finite() )
+  {
+    throw BadParameter( "The simulation time must be finite." );
+  }
+  if ( not t_sim.is_grid_time() )
+  {
+    throw BadParameter(
+      "The simulation time must be a multiple "
+      "of the simulation resolution." );
+  }
+
+  kernel().simulation_manager.run( t_sim );
+}
+
+void
+prepare()
+{
+  kernel().simulation_manager.prepare();
+}
+
+void
+cleanup()
+{
+  kernel().simulation_manager.cleanup();
+}
+
+void
 copy_model( const Name& oldmodname,
   const Name& newmodname,
   const DictionaryDatum& dict )
@@ -279,13 +319,13 @@ get_model_defaults( const Name& modelname )
 
   DictionaryDatum dict;
 
-  if ( !nodemodel.empty() )
+  if ( not nodemodel.empty() )
   {
     const long model_id = static_cast< long >( nodemodel );
     Model* m = kernel().model_manager.get_model( model_id );
     dict = m->get_status();
   }
-  else if ( !synmodel.empty() )
+  else if ( not synmodel.empty() )
   {
     const long synapse_id = static_cast< long >( synmodel );
     dict = kernel().model_manager.get_connector_defaults( synapse_id );
@@ -296,12 +336,6 @@ get_model_defaults( const Name& modelname )
   }
 
   return dict;
-}
-
-void
-set_num_rec_processes( const index n_rec_procs )
-{
-  kernel().mpi_manager.set_num_rec_processes( n_rec_procs, false );
 }
 
 void
@@ -333,7 +367,9 @@ get_nodes( const index node_id,
   Subnet* subnet =
     dynamic_cast< Subnet* >( kernel().node_manager.get_node( node_id ) );
   if ( subnet == NULL )
+  {
     throw SubnetExpected();
+  }
 
   LocalNodeList localnodes( *subnet );
   std::vector< MPIManager::NodeAddressingData > globalnodes;

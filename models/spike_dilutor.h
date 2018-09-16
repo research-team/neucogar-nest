@@ -25,9 +25,9 @@
 
 // Includes from nestkernel:
 #include "connection.h"
+#include "device_node.h"
 #include "event.h"
 #include "nest_types.h"
-#include "node.h"
 #include "ring_buffer.h"
 #include "stimulating_device.h"
 
@@ -57,7 +57,7 @@ ported to Nest 2.6 by: Setareh, April 2015
 SeeAlso: mip_generator
 */
 
-class spike_dilutor : public Node
+class spike_dilutor : public DeviceNode
 {
 
 public:
@@ -141,7 +141,9 @@ inline port
 spike_dilutor::handles_test_event( SpikeEvent&, rport receptor_type )
 {
   if ( receptor_type != 0 )
+  {
     throw UnknownReceptorType( receptor_type, get_name() );
+  }
   return 0;
 }
 

@@ -26,19 +26,19 @@ API of the PyNEST wrapper.
 
 import warnings
 import inspect
+import json
 import functools
 import textwrap
+import subprocess
+import os
+import re
+import sys
+
+from string import Template
 
 # These variables MUST be set by __init__.py right after importing.
 # There is no safety net, whatsoever.
 sps = spp = sr = pcd = kernel = None
-
-
-# Monkeypatch warnings.showwarning() to just print the warning without
-# the code line it was emitted by.
-def _warning(msg, cat=UserWarning, fname='', lineno=-1):
-    print('{0}:{1}: {2}: {3}'.format(fname, lineno, cat.__name__, msg))
-warnings.showwarning = _warning
 
 # These flags are used to print deprecation warnings only once. The
 # corresponding functions will be removed in the 2.6 release of NEST.
@@ -393,11 +393,184 @@ def broadcast(item, length, allowed_types, name="item"):
     elif len(item) == 1:
         return length * item
     elif len(item) != length:
-        raise TypeError("'%s' must be a single value, a list with " +
-                        "one element or a list with %i elements."
-                        % (name, length))
-
+        raise TypeError("'{0}' must be a single value, a list with " +
+                        "one element or a list with {1} elements.".format(
+                            name, length))
     return item
+
+
+def __check_nb():
+    """Return true if called from a Jupyter notebook."""
+    try:
+        return get_ipython().__class__.__name__.startswith('ZMQ')
+    except NameError:
+        return False
+
+
+def __show_help_in_modal_window(objname, hlptxt):
+    """Open modal window with help text
+
+    Parameters
+    ----------
+    objname :   str
+            filename
+    hlptxt  :   str
+            Full text
+    """
+
+    hlptxt = json.dumps(hlptxt)
+    style = "<style>.modal-body p { display: block;unicode-bidi: embed; " \
+            "font-family: monospace; white-space: pre; }</style>"
+    s = Template("""
+       require(
+           ["base/js/dialog"],
+           function(dialog) {
+               dialog.modal({
+                   title: '$jstitle',
+                   body: $jstext,
+                   buttons: {
+                       'close': {}
+                   }
+               });
+           }
+       );
+       """)
+
+    from IPython.display import HTML, Javascript, display
+    display(HTML(style))
+
+    display(Javascript(s.substitute(jstitle=objname, jstext=hlptxt)))
+
+
+def get_help_filepath(hlpobj):
+    """Get file path of help object
+
+    Prints message if no help is available for hlpobj.
+
+    Parameters
+    ----------
+    hlpobj : string
+        Object to display help for
+
+    Returns
+    -------
+    string:
+        Filepath of the help object or None if no help available
+    """
+
+    helpdir = os.path.join(sli_func("statusdict/prgdocdir ::"), "help")
+    objname = hlpobj + '.hlp'
+    for dirpath, dirnames, files in os.walk(helpdir):
+        for hlp in files:
+            if hlp == objname:
+                objf = os.path.join(dirpath, objname)
+                return objf
+    else:
+        print("Sorry, there is no help for '" + hlpobj + "'.")
+        return None
+
+
+def load_help(hlpobj):
+    """Returns documentation of the object
+
+    Parameters
+    ----------
+    hlpobj : object
+        Object to display help for
+
+    Returns
+    -------
+    string:
+        The documentation of the object or None if no help available
+    """
+
+    objf = get_help_filepath(hlpobj)
+    if objf:
+        with open(objf, 'r') as fhlp:
+            hlptxt = fhlp.read()
+        return hlptxt
+    else:
+        return None
+
+
+def __is_executable(path, candidate):
+    """Returns true for executable files."""
+
+    candidate = os.path.join(path, candidate)
+    return os.access(candidate, os.X_OK) and os.path.isfile(candidate)
+
+
+def show_help_with_pager(hlpobj, pager=None):
+    """Output of doc in python with pager or print
+
+    Parameters
+    ----------
+    hlpobj : object
+        Object to display
+    pager: str, optional
+        pager to use, False if you want to display help using print().
+    """
+
+    if sys.version_info < (2, 7, 8):
+        print("NEST help is only available with Python 2.7.8 or later.\n")
+        return
+
+    if 'NEST_INSTALL_DIR' not in os.environ:
+        print(
+            'NEST help needs to know where NEST is installed.'
+            'Please source nest_vars.sh or define NEST_INSTALL_DIR manually.')
+        return
+
+    # check that help is available
+    objf = get_help_filepath(hlpobj)
+    if objf is None:
+        return   # message is printed by get_help_filepath()
+
+    if __check_nb():
+        # Display help in notebook
+        # Load the helptext, check the file exists.
+        hlptxt = load_help(hlpobj)
+        if hlptxt:
+            # Opens modal window only in notebook.
+            objname = hlpobj + '.hlp'
+            __show_help_in_modal_window(objname, hlptxt)
+        return
+
+    if not pager and pager is not None:
+        # pager == False: display using print()
+        # Note: we cannot use "pager is False" as Numpy has its own False
+        hlptxt = load_help(hlpobj)
+        if hlptxt:
+            print(hlptxt)
+        return
+
+    # Help is to be displayed by pager
+    # try to find a pager if not explicitly given
+    if pager is None:
+        pager = sli_func('/page /command GetOption')
+
+        # pager == false if .nestrc does not define one
+        if not pager:
+            # Search for pager in path. The following is based on
+            # https://stackoverflow.com/questions/377017
+            for candidate in ['less', 'more', 'cat']:
+                if any(__is_executable(path, candidate)
+                       for path in os.environ['PATH'].split(os.pathsep)):
+                    pager = candidate
+                    break
+
+    # check that we have a pager
+    if not pager:
+        print('NEST help requires a pager program. You can configure '
+              'it in the .nestrc file in your home directory.')
+        return
+
+    try:
+        subprocess.check_call([pager, objf])
+    except (OSError, IOError, subprocess.CalledProcessError):
+        print('Displaying help with pager "{}" failed. '
+              'Please define a working parser in file .nestrc '
+              'in your home directory.'.format(pager))
 
 
 @check_stack
@@ -429,7 +602,7 @@ def set_verbosity(level):
 
     # Defined in hl_api_helper to avoid circular inclusion problem with
     # hl_api_info.py
-    sr("%s setverbosity" % level)
+    sr("{} setverbosity".format(level))
 
 
 def model_deprecation_warning(model):
@@ -443,8 +616,7 @@ def model_deprecation_warning(model):
     """
 
     deprecated_models = {'subnet': 'GIDCollection',
-                         'aeif_cond_alpha_RK5': 'aeif_cond_alpha',
-                         'iaf_neuron': 'iaf_psc_alpha'}
+                         'aeif_cond_alpha_RK5': 'aeif_cond_alpha'}
 
     if model in deprecated_models:
         text = "The {0} model is deprecated and will be removed in a \
