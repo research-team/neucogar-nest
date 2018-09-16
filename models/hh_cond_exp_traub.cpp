@@ -74,6 +74,8 @@ RecordablesMap< hh_cond_exp_traub >::create()
     &hh_cond_exp_traub::get_y_elem_< hh_cond_exp_traub::State_::HH_H > );
   insert_( names::Inact_n,
     &hh_cond_exp_traub::get_y_elem_< hh_cond_exp_traub::State_::HH_N > );
+  insert_(names::Extracellular,
+  	&hh_cond_exp_traub::get_y_elem_<hh_cond_exp_traub::State_::extracellular>);
 }
 
 extern "C" int
@@ -106,6 +108,9 @@ hh_cond_exp_traub_dynamics( double, const double y[], double f[], void* pnode )
   // membrane potential
   f[ S::V_M ] = ( -I_Na - I_K - I_L - I_syn_exc - I_syn_inh + node.B_.I_stim_
                   + node.P_.I_e ) / node.P_.C_m;
+
+  f[ S::extracellular ] = I_Na + I_K + I_L + I_syn_exc + I_syn_inh + node.P_.C_m
+  		* 	node.P_.delta_Vm / 0.1; //Time::get_resolution().get_ms();
 
   // channel dynamics
   const double V = y[ S::V_M ] - node.P_.V_T;
@@ -150,6 +155,7 @@ nest::hh_cond_exp_traub::Parameters_::Parameters_()
   , tau_synI( 10.0 ) // Synaptic Time Constant Excitatory Synapse (ms)
   , t_ref_( 2.0 )    // Refractory time in ms
   , I_e( 0.0 )       // Stimulus Current (pA)
+  , delta_Vm( 0.0 )		// Hidden parameter for keeping delta of V_m
 {
 }
 
@@ -214,6 +220,7 @@ nest::hh_cond_exp_traub::Parameters_::get( DictionaryDatum& d ) const
   def< double >( d, names::E_K, E_K );
   def< double >( d, names::E_L, E_L );
   def< double >( d, names::V_T, V_T );
+  def< double >( d, names::delta_Vm, delta_Vm );
   def< double >( d, names::E_ex, E_ex );
   def< double >( d, names::E_in, E_in );
   def< double >( d, names::tau_syn_ex, tau_synE );
@@ -263,6 +270,7 @@ nest::hh_cond_exp_traub::State_::get( DictionaryDatum& d ) const
   def< double >( d, names::Act_m, y_[ HH_M ] );
   def< double >( d, names::Act_h, y_[ HH_H ] );
   def< double >( d, names::Inact_n, y_[ HH_N ] );
+  def< double >( d, names::Extracellular, y_[extracellular]);
 }
 
 void
@@ -419,6 +427,9 @@ nest::hh_cond_exp_traub::update( Time const& origin,
     to >= 0 && ( delay ) from < kernel().connection_manager.get_min_delay() );
   assert( from < to );
 
+
+  double old_Vm = S_.y_[ State_::V_M ];
+
   for ( long lag = from; lag < to; ++lag )
   {
 
@@ -473,6 +484,8 @@ nest::hh_cond_exp_traub::update( Time const& origin,
     // log state data
     B_.logger_.record_data( origin.get_steps() + lag );
   }
+
+  this->P_.delta_Vm = S_.y_[ State_::V_M ] - old_Vm;
 }
 
 void

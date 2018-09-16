@@ -100,6 +100,7 @@ const Name dead_time_shape( "dead_time_shape" );
 const Name delay( "delay" );
 const Name delays( "delays" );
 const Name deliver_interval( "deliver_interval" );
+const Name delta_Vm( "delta_V_m" );
 const Name delta_P( "delta_P" );
 const Name Delta_T( "Delta_T" );
 const Name delta_tau( "delta_tau" );
@@ -146,6 +147,7 @@ const Name error( "error" );
 const Name eta( "eta" );
 const Name events( "events" );
 const Name ex_spikes( "ex_spikes" );
+const Name Extracellular( "Extracellular" );
 
 const Name fbuffer_size( "fbuffer_size" );
 const Name file( "file" );

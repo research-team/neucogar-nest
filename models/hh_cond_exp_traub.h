@@ -198,6 +198,7 @@ private:
 
     //! Voltage offset for dynamics (adjusts threshold to around -50 mV)
     double V_T;
+    double delta_Vm;
 
     double E_ex;     //!< Excitatory reversal Potential in mV
     double E_in;     //!< Inhibitory reversal Potential in mV
@@ -230,6 +231,7 @@ public:
       HH_N,  // 3
       G_EXC, // 4
       G_INH, // 5
+      extracellular, // 6
       STATE_VEC_SIZE
     };
 
@@ -254,7 +256,7 @@ public:
   struct Variables_
   {
     int refractory_counts_;
-    double U_old_; // for spike-detection
+	double U_old_; // for spike-detection
   };
 
   // ----------------------------------------------------------------

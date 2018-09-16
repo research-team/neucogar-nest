@@ -125,6 +125,7 @@ extern const Name delta_P;
 extern const Name Delta_T;
 extern const Name delta_tau;
 extern const Name delta_u;
+extern const Name delta_Vm;
 extern const Name Delta_V;
 extern const Name dg;
 extern const Name dg_ex;
@@ -165,6 +166,7 @@ extern const Name eps;
 extern const Name equilibrate;
 extern const Name error;
 extern const Name eta;
+extern const Name Extracellular;
 extern const Name events;
 extern const Name ex_spikes;
 
