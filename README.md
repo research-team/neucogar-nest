@@ -1,7 +1,7 @@
 ## The Neural Simulation Tool - NEST with NcN lab changes
 ## Cloned from original repository [nest-simulator](https://github.com/nest/nest-simulator)
 
-======
+-------------
 
 Changes:
 
